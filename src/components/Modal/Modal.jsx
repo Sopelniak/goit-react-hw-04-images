@@ -1,8 +1,11 @@
+import Loader from 'components/Loader/Loader';
 import PropTypes from 'prop-types';
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
+
 import './Modal.scss';
 
 function Modal({ imgToModal, onCloseModal }) {
+  const [loaded, setLoaded] = useState(false);
   useEffect(() => {
     const onKeyUp = e => {
       if (e.code === 'Escape') {
@@ -20,10 +23,22 @@ function Modal({ imgToModal, onCloseModal }) {
     }
   };
 
+  const onLoad = () => {
+    setLoaded(true);
+  };
+
+  const classImg = loaded ? null : 'notShown';
+
   return (
     <div className="Overlay" onClick={onClick}>
       <div className="Modal">
-        <img src={imgToModal.largeImageURL} alt={imgToModal.id} />
+        <img
+          className={classImg}
+          src={imgToModal.largeImageURL}
+          alt={imgToModal.id}
+          onLoad={onLoad}
+        />
+        {!loaded && <Loader />}
       </div>
     </div>
   );
