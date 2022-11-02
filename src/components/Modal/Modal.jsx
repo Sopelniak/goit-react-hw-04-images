@@ -1,40 +1,35 @@
 import PropTypes from 'prop-types';
-import { Component } from 'react';
+import { useEffect } from 'react';
 import './Modal.scss';
 
-export class Modal extends Component {
-  componentDidMount() {
-    window.addEventListener('keyup', this.onKeyUp);
-  }
+function Modal({ imgToModal, onCloseModal }) {
+  useEffect(() => {
+    const onKeyUp = e => {
+      if (e.code === 'Escape') {
+        onCloseModal();
+      }
+    };
 
-  componentWillUnmount() {
-    window.removeEventListener('keyup', this.onKeyUp);
-  }
+    window.addEventListener('keyup', onKeyUp);
+    return () => window.removeEventListener('keyup', onKeyUp);
+  }, [onCloseModal]);
 
-  onKeyUp = e => {
-    if (e.code === 'Escape') {
-      this.props.onCloseModal();
-    }
-    return;
-  };
-
-  onClick = e => {
+  const onClick = e => {
     if (e.target === e.currentTarget) {
-      this.props.onCloseModal();
+      onCloseModal();
     }
   };
 
-  render() {
-    const { imgToModal } = this.props;
-    return (
-      <div className="Overlay" onClick={this.onClick}>
-        <div className="Modal">
-          <img src={imgToModal.largeImageURL} alt={imgToModal.id} />
-        </div>
+  return (
+    <div className="Overlay" onClick={onClick}>
+      <div className="Modal">
+        <img src={imgToModal.largeImageURL} alt={imgToModal.id} />
       </div>
-    );
-  }
+    </div>
+  );
 }
+
+export { Modal };
 
 Modal.propTypes = {
   imgToModal: PropTypes.shape({

@@ -1,33 +1,27 @@
-import { Component } from 'react';
 import PropTypes from 'prop-types';
 import { ImageGalleryItem } from './ImageGalleryItem/ImageGalleryItem';
 import './ImageGallery.scss';
 
-class ImageGallery extends Component {
-  render() {
-    return (
-      <ul
-        onClick={this.props.onClickItem}
-        id="ImageGallery"
-        className="ImageGallery"
-      >
-        {this.props.imgs.map(img => {
-          return (
-            <ImageGalleryItem
-              key={img.id}
-              id={img.id}
-              webformatURL={img.webformatURL}
-              largeImageURL={img.largeImageURL}
-            />
-          );
-        })}
-      </ul>
-    );
-  }
+function ImageGallery({ imgs, onClickItem }) {
+  return (
+    <ul onClick={onClickItem} id="ImageGallery" className="ImageGallery">
+      {imgs.map(img => {
+        return (
+          <ImageGalleryItem
+            key={img.id}
+            id={img.id}
+            webformatURL={img.webformatURL}
+            largeImageURL={img.largeImageURL}
+          />
+        );
+      })}
+    </ul>
+  );
 }
 
 export { ImageGallery };
 
 ImageGallery.propTypes = {
   imgs: PropTypes.array.isRequired,
+  onClickItem: PropTypes.func.isRequired,
 };

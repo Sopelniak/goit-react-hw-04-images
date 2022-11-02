@@ -1,104 +1,81 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import { Searchbar } from './Searchbar/Searchbar';
-import Loader from './Loader/Loader';
 import { ImageGallery } from './ImageGallery/ImageGallery';
 import { Button } from './Button/Button';
 import { Modal } from './Modal/Modal';
 import { imgsRequest } from 'services/api';
+import Loader from './Loader/Loader';
 import '../index.css';
 
-class App extends Component {
-  state = {
-    imgs: [],
-    page: 1,
-    searchValue: '',
-    error: '',
-    isLoading: false,
-    modal: { imgToModal: null, isModalOpen: false },
-  };
+function App() {
+  const [imgs, setImgs] = useState([]);
+  const [page, setPage] = useState(1);
+  const [searchValue, setSearchValue] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [modal, setModal] = useState({ imgToModal: null, isModalOpen: false });
 
-  componentDidUpdate(prevProps, prevState) {
-    if (
-      prevState.searchValue !== this.state.searchValue ||
-      prevState.page !== this.state.page
-    ) {
-      this.fetchImgs();
-    }
-  }
+  useEffect(() => {
+    const fetchImgs = async () => {
+      try {
+        setIsLoading(true);
+        setError('');
 
-  fetchImgs = async () => {
-    const { searchValue, page } = this.state;
-
-    try {
-      this.setState({
-        isLoading: true,
-        error: '',
-      });
-
-      const imgsData = await imgsRequest(searchValue, page);
-
-      if (page === 1) {
-        this.setState({
-          imgs: imgsData.hits,
-        });
-      } else {
-        this.setState({
-          imgs: [...this.state.imgs, ...imgsData.hits],
-        });
+        const imgsData = await imgsRequest(searchValue, page);
+        if (imgsData.hits.length === 0) {
+          alert('There are no offers for your request!');
+        } else if (page === 1) {
+          setImgs(imgsData.hits);
+        } else {
+          setImgs([...imgs, ...imgsData.hits]);
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err) {
-      this.setState({ error: err.message });
-    } finally {
-      this.setState({ isLoading: false });
-    }
-  };
+    };
 
-  onSubmit = e => {
+    if (page === 1 && searchValue === '') return;
+
+    fetchImgs();
+  }, [searchValue, page]);
+
+  const onSubmit = e => {
     const { value } = e.target.elements.search;
     e.preventDefault();
-    this.setState({ searchValue: value, page: 1 });
+    setSearchValue(value);
+    setPage(1);
   };
 
-  onClickItem = e => {
+  const onClickItem = e => {
     if (e.target.id === 'ImageGallery') {
       return;
     }
-    const selectedImg = this.state.imgs.find(
-      img => img.id === Number(e.target.id)
-    );
-    this.setState({
-      modal: { isModalOpen: true, imgToModal: selectedImg },
-    });
+    const selectedImg = imgs.find(img => img.id === Number(e.target.id));
+    setModal({ isModalOpen: true, imgToModal: selectedImg });
   };
 
-  onCloseModal = () => {
-    this.setState({ modal: { isModalOpen: false, imgToModal: null } });
+  const onCloseModal = () => {
+    setModal({ isModalOpen: false, imgToModal: null });
   };
 
-  onLoadMore = () => {
-    this.setState(prevState => ({
-      page: prevState.page + 1,
-    }));
+  const onLoadMore = () => {
+    setPage(prevPage => prevPage + 1);
   };
 
-  render() {
-    const { imgs, modal, isLoading } = this.state;
-    const isBtnLoadMore = imgs.length > 0;
-    return (
-      <div className="App">
-        {isLoading && <Loader />}
-        <Searchbar onSubmit={this.onSubmit} />
-        <ImageGallery imgs={imgs} onClickItem={this.onClickItem} />
-        {isBtnLoadMore && <Button onBtnClick={this.onLoadMore} />}
-        {modal.isModalOpen && (
-          <Modal
-            imgToModal={modal.imgToModal}
-            onCloseModal={this.onCloseModal}
-          />
-        )}
-      </div>
-    );
-  }
+  const isShownBtnLoadMore = imgs.length > 0;
+  return (
+    <div className="App">
+      {!!error && <p>{error}</p>}
+      {isLoading && <Loader />}
+      <Searchbar onSubmit={onSubmit} />
+      <ImageGallery imgs={imgs} onClickItem={onClickItem} />
+      {isShownBtnLoadMore && <Button onBtnClick={onLoadMore} />}
+      {modal.isModalOpen && (
+        <Modal imgToModal={modal.imgToModal} onCloseModal={onCloseModal} />
+      )}
+    </div>
+  );
 }
-
 export { App };
